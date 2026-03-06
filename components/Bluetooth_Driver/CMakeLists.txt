@@ -1,5 +1,5 @@
 idf_component_register(
-    SRCS "mpu_6050.cpp"
+    SRCS "Bluetooth_WYP.cpp"
     INCLUDE_DIRS "include"
-    REQUIRES driver
+    REQUIRES driver bt
 )
