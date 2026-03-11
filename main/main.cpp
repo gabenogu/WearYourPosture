@@ -4,6 +4,7 @@
 #include <iostream>
 #include <esp_bt.h>
 
-extern "C" void app_main(void){
-    set_led();
+extern "C" void app_main(void)
+{
+
 }
