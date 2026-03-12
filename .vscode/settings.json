@@ -4,7 +4,7 @@
     "board/esp32-wrover-kit-3.3v.cfg"
   ],
   "idf.portWin": "COM3",
-  "idf.currentSetup": "C:\\esp\\v5.5.3\\esp-idf",
+  "idf.currentSetup": "/Users/reynaldocanas/.espressif/v5.5.3/esp-idf",
   "idf.customExtraVars": {
     "IDF_TARGET": "esp32"
   },
@@ -14,5 +14,6 @@
     "--query-driver=**",
     "--compile-commands-dir=e:\\WearYourPosture\\PostureDevice\\build"
   ],
-  "idf.flashType": "UART"
+"idf.flashType": "UART",
+"idf.port": "/dev/tty.usbserial-0001"
 }

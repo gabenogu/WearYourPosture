@@ -2,8 +2,13 @@
 #include "mpu_6050.h"
 #include <mutex>
 #include <iostream>
-#include <esp_bt.h>
 
 extern "C" void app_main(void){
-    set_led();
+    // Initialize the MPU6050 sensor
+    MPU6050 sensor(I2C_NUM_0, 0x68); // Use I2C port 0 and address 0x68
+
+    while (true) {
+        print_data(sensor);
+        vTaskDelay(1000 / portTICK_PERIOD_MS); // Delay for 1 second
+    }
 }
