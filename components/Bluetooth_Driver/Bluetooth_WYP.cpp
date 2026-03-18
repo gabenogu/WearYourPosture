@@ -11,6 +11,7 @@ static const char *TAG = "BLE_GAP"; // Tag for logging
 static uint8_t own_addr_type; // Variable to store the device's own address type
 uint16_t ble_conn_handle = BLE_HS_CONN_HANDLE_NONE; // conn_handle is the ID of the currently connected phone. BLE_HS_CONN_HANDLE_NONE = 0xFFFF, which means no phone is connected. 
 
+static int gap_event_handler(struct ble_gap_event *event, void *arg);
 
 // Function: Freertos task for running the BLE host stack
 static void ble_host_task(void *param) {
@@ -41,7 +42,7 @@ void ble_gap_start_advertising(void){
     adv_params.conn_mode = BLE_GAP_CONN_MODE_UND; // Set connection mode to undirected connectable
     adv_params.disc_mode = BLE_GAP_DISC_MODE_GEN; // Set discoverable mode
     
-    rc = ble_gap_adv_start(own_addr_type, NULL, BLE_HS_FOREVER, &adv_params, NULL, NULL); // Start advertising with the specified parameters
+    rc = ble_gap_adv_start(own_addr_type, NULL, BLE_HS_FOREVER, &adv_params, gap_event_handler, NULL); // Start advertising with the specified parameters
     if (rc != 0) {
         ESP_LOGE(TAG, "Error starting advertising: %d", rc); // Log an error if starting advertising fails
         return;
