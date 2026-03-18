@@ -1,5 +1,33 @@
+#include <stdio.h>
 #include "mpu_6050.h"
+#include "esp_err.h"
 
+static constexpr uint8_t MUX_ADDR = 0x70; //change depending on multiplexer
+
+static esp_err_t mux_select_channel(i2c_port_t port, uint8_t channel){
+    if (channel > 7 ) return ESP_ERR_INVALID_ARG;
+    uint8_t control = (1 << channel);
+    return i2c_master_write_to_device(
+        port, 
+        MUX_ADDR,
+        &control,
+        1,
+        1000 / portTICK_PERIOD_MS
+    );
+}
+
+extern "C" void app_main(void){
+    MPU6050 sensor(I2C_NUM_0, 0x68);
+
+    while (true){
+        if (mux_select_channel(I2C_NUM_0, 0) == ESP_OK){
+            print_data(sensor);
+        } else {
+            printf("Failed to select mux channel\n");
+        }
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
+}
 
 MPU6050::MPU6050(i2c_port_t port, uint8_t address){
     // Initialize the sensor (e.g., wake it up)
