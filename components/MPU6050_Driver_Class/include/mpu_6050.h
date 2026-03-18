@@ -8,23 +8,23 @@
 
 struct AccelData {
 
-    int16_t x;
-    int16_t y;
-    int16_t z;
+    float x;
+    float y;
+    float z;
 
 };
 struct GyroData {  
 
-    int16_t x;
-    int16_t y;
-    int16_t z;
+    float x;
+    float y;
+    float z;
 };
 
 struct SensorData {
 
     AccelData accel;
     GyroData gyro;
-    int16_t temp;
+    float temp;
     /*SensorState state;*/
 
 };
