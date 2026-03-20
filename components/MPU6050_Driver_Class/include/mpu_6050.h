@@ -45,9 +45,12 @@ class MPU6050 {
 
     public:
         MPU6050(i2c_port_t port, uint8_t address);
+        esp_err_t init();
         void read(SensorData *data); 
 
         friend void print_data(MPU6050 &sensor);
+
+    
 };
 
 void print_data(MPU6050 &sensor);

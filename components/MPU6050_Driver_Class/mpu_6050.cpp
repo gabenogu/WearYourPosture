@@ -55,6 +55,38 @@ inline int16_t combine(uint8_t high, uint8_t low) {
     return (int16_t)((high << 8) | low);
 }
 
+esp_err_t MPU6050::init() {
+
+   
+    // 1. Setup and install the I2C driver (i2c_param_config, etc.)
+
+    i2c_config_t conf = {};
+     conf.mode = I2C_MODE_MASTER;
+    conf.sda_io_num = GPIO_NUM_21; 
+    conf.scl_io_num = GPIO_NUM_22; 
+    conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
+    conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
+    conf.master.clk_speed = 100000;
+    i2c_param_config(i2c_port, &conf);
+    i2c_driver_install(i2c_port, conf.mode, 0, 0,0);
+    
+     // 2. Send the wake-up command
+    uint8_t wake_cmd[2] = {WAKEUP_REG, 0x00};
+    esp_err_t err = i2c_master_write_to_device(i2c_port, slave_addr, wake_cmd, sizeof(wake_cmd), 1000 / portTICK_PERIOD_MS);//time period to wait for a command.
+    
+    if (err != ESP_OK) {
+        return err;
+    }   
+    // 3. Send the config command
+    const uint8_t config_register[2] = {0x1C,0x00};    
+    // 4. Return the status
+    esp_err_t err = i2c_master_write_to_device(i2c_port, slave_addr, wake_cmd, sizeof(wake_cmd), 1000 / portTICK_PERIOD_MS);
+    if (err != ESP_OK) {
+        return err;
+    }
+    return ESP_OK;
+}
+
 
 void MPU6050:: read(SensorData *data) {
     // Read 14 bytes of data starting from the DATA_START_REG
