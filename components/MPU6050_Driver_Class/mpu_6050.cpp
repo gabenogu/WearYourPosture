@@ -1,9 +1,16 @@
 #include "mpu_6050.h"
+#include <math.h>
 
 #define ACCEL_SCALE 16384.0f 
 #define GYRO_SCALE 131.0f
 #define ONE_TIME_DELAY (1000 / portTICK_PERIOD_MS)
 #define CONVERT_TEMP 340.0f + 36.53f
+
+#define ALPHA 0.98f
+//bc trust gyro (98%) for fast, smooth respone and rely 
+// on accelerometer (2%) to correct long term drift
+
+
 
 MPU6050::MPU6050(i2c_port_t port, uint8_t address){
     // Initialize the sensor (e.g., wake it up)
@@ -49,10 +56,29 @@ void MPU6050:: read(SensorData *data) {
     data->gyro.y = combine(buffer[10], buffer[11]) / (GYRO_SCALE);
     data->gyro.z = combine(buffer[12], buffer[13]) / (GYRO_SCALE);
 }
+
+//compute pitch and roll from accelerometer
+void MPU6050:: compute_acc_angles(SensorData *data, float &acc_pitch, float &acc_roll){
+    acc_pitch = atan2(data->accel.y, sqrt(data->accel.x*data->accel.x + data->accel.z*data->accel.z)) * 180.0 / M_PI;
+    acc_roll  = atan2(-data->accel.x, data->accel.z) * 180.0 / M_PI;
+}
+//complementar filter
+void MPU6050::update_orientation(SensorData *data, float dt){
+    float acc_pitch, acc_roll;
+    compute_acc_angles(data, acc_pitch, acc_roll);
+
+    // Integrate gyro (dead reckoning)
+    this->pitch = ALPHA * (this->pitch + data->gyro.x * dt) + (1.0f - ALPHA) * acc_pitch;
+    this->roll  = ALPHA * (this->roll  + data->gyro.y * dt) + (1.0f - ALPHA) * acc_roll;
+}
+
 void print_data(MPU6050 &sensor) {
     SensorData data;
     sensor.read(&data);
-    printf("Accel: X=%f, Y=%f, Z=%f\n", data.accel.x, data.accel.y, data.accel.z);
-    printf("Gyro: X=%f, Y=%f, Z=%f\n", data.gyro.x, data.gyro.y, data.gyro.z);
-    printf("Temp: %f\n", data.temp);
+    printf("Accel: X=%.2f, Y=%.2f, Z=%.2f\n", data.accel.x, data.accel.y, data.accel.z);
+    printf("Gyro: X=%.2f, Y=%.2f, Z=%.2f\n", data.gyro.x, data.gyro.y, data.gyro.z);
+    printf("Pitch: %.2f, Roll: %.2f\n", sensor.pitch, sensor.roll);
+    printf("Temp: %.2f\n", data.temp);
+    //use %.2f bc prints a float w 2 decimal places instead of %f --> 6 decimal places
+
 }
