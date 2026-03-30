@@ -65,9 +65,19 @@ class MPU6050 {
 
 
     public:
-        MPU6050(i2c_port_t port, uint8_t address);
-        void read(SensorData *data); 
+        MPU6050() = default;
+        explicit MPU6050(uint8_t address);
+        void init_accel(i2c_master_dev_handle_t i2c_dev);
+        
 
-        friend void print_data(MPU6050 &sensor);
+        //complementary filter function
+        void compute_acc_angles(SensorData *data, float &acc_pitch, float &acc_roll);
+        void update_orientation(SensorData *data, float dt);
+        void print_data();
+
+        // Estimated angles (can also be class members if needed)
+        float pitch = 0.0f;
+        float roll  = 0.0f;
+        void read(i2c_master_dev_handle_t i2c_dev); 
 };
 #endif
