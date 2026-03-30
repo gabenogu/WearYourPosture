@@ -10,25 +10,25 @@ MPU6050::MPU6050(uint8_t address): slave_addr(address){
 }
 void MPU6050::init_accel( i2c_master_dev_handle_t i2c_dev){
     // 1. Wake up + use PLL (VERY IMPORTANT)
-    uint8_t pwr[2] = {0x6B, 0x01};
+    constexpr uint8_t pwr[2] = {WAKEUP_REG, PLL_PWR_BIT_SET};
     i2c_master_transmit(i2c_dev, pwr, 2, 100);
 
     vTaskDelay(10 / portTICK_PERIOD_MS);
 
     // 2. Set sample rate divider (1kHz / (1 + 7) = 125 Hz)
-    uint8_t smplrt[2] = {0x19, 0x07};
+    constexpr uint8_t smplrt[2] = {SAMPLE_RATE_REG, HZ_125_SAMPLERATE};
     i2c_master_transmit(i2c_dev, smplrt, 2, 100);
 
     // 3. Configure DLPF (important for stable data updates)
-    uint8_t config[2] = {0x1A, 0x03};
+    constexpr uint8_t config[2] = {DLPF_REGISTER, DLPF_VALUE};
     i2c_master_transmit(i2c_dev, config, 2, 100);
 
     // 4. Gyro config (±250 deg/s)
-    uint8_t gyro[2] = {0x1B, 0x00};
+    constexpr uint8_t gyro[2] = {GYRO_RATE_REG,GYRO_RATE_VALUE};
     i2c_master_transmit(i2c_dev, gyro, 2, 100);
 
     // 5. Accel config (±2g)
-    uint8_t accel[2] = {0x1C, 0x00};
+    constexpr uint8_t accel[2] = {ACCEL_RATE_REG, ACCEL_RATE_VALUE};
     i2c_master_transmit(i2c_dev, accel, 2, 100);
 }
 
@@ -57,7 +57,3 @@ void MPU6050::read(i2c_master_dev_handle_t i2c_dev) {
     printf("Gyro: X=%f, Y=%f, Z=%f\n", data.gyro.x, data.gyro.y, data.gyro.z);
     printf("Temp: %f\n", data.temp);
 }
-
-
-
-

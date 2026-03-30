@@ -1,15 +1,15 @@
 #include "include/Multiplexer_Class.h"
 #define PORT_NUM I2C_NUM_0
-#define MAX_ACCEL 2     // will change to 3 when time for final build
-constexpr Addresses addr[] = {Addresses::ADDRESS_ONE_MP, Addresses::ADDRESS_TWO_MP};
+
 i2c_master_dev_handle_t Multiplexer::dev_handle = {0};
 i2c_master_bus_handle_t Multiplexer::bus_handle = {0};
 
 
 Multiplexer::Multiplexer():
     accelerometers{
-        MPU6050(static_cast<uint8_t>(Addresses::ADDRESS_ONE_MP)), 
-        MPU6050(static_cast<uint8_t>(Addresses::ADDRESS_TWO_MP))
+        MPU6050(0x68), 
+        MPU6050(0x68),
+        MPU6050(0x68),
     }
 {
     
@@ -45,37 +45,49 @@ void Multiplexer::multiplexer_task_thread(void * args){
     const i2c_device_config_t accel_config = {
         .dev_addr_length = I2C_ADDR_BIT_LEN_7,
         .device_address = 0x68,
-        .scl_speed_hz = 400000
+        .scl_speed_hz = 100000
     };
     // Dev handles for both accelerometers
-    i2c_master_dev_handle_t accel_dev_handle;
+    i2c_master_dev_handle_t accel_0_dev_handle;
+    i2c_master_dev_handle_t accel_1_dev_handle;
+    i2c_master_dev_handle_t accel_2_dev_handle;
+    i2c_master_bus_add_device(bus_handle,&accel_config,&accel_0_dev_handle);
+    i2c_master_bus_add_device(bus_handle, &accel_config, &accel_1_dev_handle);
+    i2c_master_bus_add_device(bus_handle, &accel_config, &accel_2_dev_handle);
 
-    i2c_master_bus_add_device(bus_handle,&accel_config,&accel_dev_handle);
 
-    // for(int i = 0; i < MAX_ACCEL; i++){
-    //     arg->select_channel(i);
-    //     vTaskDelay(2/portTICK_PERIOD_MS);
-    //     arg->accelerometers[i].init_accel(accel_dev_handle);
-    // }
     arg->select_channel(0);
-    arg->accelerometers[0].init_accel(accel_dev_handle);
-
+    arg->accelerometers[0].init_accel(accel_0_dev_handle);
+    arg->select_channel(1);
+    arg->accelerometers[1].init_accel(accel_1_dev_handle);
+    arg->select_channel(2);
+    arg->accelerometers[2].init_accel(accel_2_dev_handle);
     while(1){
-        // for(int i = 0; i < MAX_ACCEL; i++){
-        //     arg->select_channel(i);
-        //     printf("Printing Accel Data idx = %d\n", i);
-        //     vTaskDelay(2/portTICK_PERIOD_MS);
-        //     arg->accelerometers[i].read(accel_dev_handle);
-        //     vTaskDelay(ONE_TIME_DELAY);
-        // }
-        arg->select_channel(0);
-        vTaskDelay(2/portTICK_PERIOD_MS);
-        arg->accelerometers[0].read(accel_dev_handle);
+        for(int i = 0; i < MAX_ACCELEROMETERS; i++){
+            printf("Printing Accel Data idx = %d\n", i);
+            arg->select_channel(i);
+            vTaskDelay(10/portTICK_PERIOD_MS);
+
+            if(i == 0){
+                arg->accelerometers[0].read(accel_0_dev_handle);
+            }else if(i == 1){
+                arg->accelerometers[1].read(accel_1_dev_handle);
+            }else if(i == 2){
+                arg->accelerometers[2].read(accel_2_dev_handle);
+            }
+
+        }
         vTaskDelay(ONE_TIME_DELAY);
+
     }
 }
 
-void Multiplexer::select_channel(int index){
-    uint8_t cmd = 0b0000'0001 << index+1;
-    i2c_master_transmit(dev_handle,&cmd,sizeof(cmd),ONE_TIME_DELAY);
+void Multiplexer::select_channel(uint8_t channel){
+    if(channel > 7){
+        return;
+    }
+    uint8_t cmd = 0b0000'0001 << channel;
+    if(i2c_master_transmit(dev_handle,&cmd,sizeof(cmd),ONE_TIME_DELAY) != ESP_OK){
+        ESP_LOGE("CHANNEL ERROR:", "Selected channel did not work");
+    }
 }

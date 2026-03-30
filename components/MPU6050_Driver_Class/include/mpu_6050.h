@@ -4,7 +4,26 @@
 #include "driver/i2c_master.h"
 #include <freertos/FreeRTOS.h>
 
-#define WAKEUP_REG    0x6B
+// Wakeup device to use PLL clock
+constexpr uint8_t WAKEUP_REG = 0x6B;
+constexpr uint8_t PLL_PWR_BIT_SET = 0x01;
+
+//register + sample rate
+constexpr uint8_t SAMPLE_RATE_REG = 0x19;
+constexpr uint8_t HZ_125_SAMPLERATE = 0x07;
+
+// Low pass filter register + value
+constexpr uint8_t DLPF_REGISTER = 0x1A;
+constexpr uint8_t DLPF_VALUE = 0x03;
+
+// Gyro config for +- 250 deg/s(sensitivity 131.0 LSB/s)
+constexpr uint8_t GYRO_RATE_REG = 0x1B;
+constexpr uint8_t GYRO_RATE_VALUE = 0x00;
+
+// Accel config for +- 2g (sensitivity 16384.0 LSB/s)
+constexpr uint8_t ACCEL_RATE_REG = 0x1C;
+constexpr uint8_t ACCEL_RATE_VALUE = 0x00;
+
 #define DATA_START_REG 0x3B
 #define ONE_TIME_DELAY (1000 / portTICK_PERIOD_MS)
 
@@ -51,5 +70,4 @@ class MPU6050 {
         void init_accel(i2c_master_dev_handle_t i2c_dev);
         void read(i2c_master_dev_handle_t i2c_dev); 
 };
-
 #endif
