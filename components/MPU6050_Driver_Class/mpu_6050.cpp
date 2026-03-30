@@ -68,8 +68,8 @@ void MPU6050::update_orientation(SensorData *data, float dt){
     compute_acc_angles(data, acc_pitch, acc_roll);
 
     // Integrate gyro (dead reckoning)
-    this->pitch = ALPHA * (this->pitch + data->gyro.x * dt) + (1.0f - ALPHA) * acc_pitch;
-    this->roll  = ALPHA * (this->roll  + data->gyro.y * dt) + (1.0f - ALPHA) * acc_roll;
+    pitch = ALPHA * (pitch + data->gyro.x * dt) + (1.0f - ALPHA) * acc_pitch;
+    roll  = ALPHA * (roll  + data->gyro.y * dt) + (1.0f - ALPHA) * acc_roll;
 }
 
 void print_data(MPU6050 &sensor) {
