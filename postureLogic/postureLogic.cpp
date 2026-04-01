@@ -9,20 +9,23 @@ float calculatePitch(const AccelData& accel) {
     
 }
 
+
+
 float calculateRoll(const AccelData& accel){
     return (atan2(accel.y, accel.z) * 180) / M_PI;
 }
 
 //with calibration tilt in mind, take current tilt deg, set both to abs
 //check if current tilt is within acceptable threshold
-bool isPostureGood(float tilt, float defaultDeg){
-    const float lowerThreshold = defaultDeg - 10.0;
-    const float upperThreshold = defaultDeg + 10.0;
-    if (tilt > upperThreshold || tilt < lowerThreshold){
-        return false;}
-    else {
-        return true;
-    }
+bool isPostureGood(float currentPitch, float baselinePitch, float currentRoll, float baselineRoll){
+    const float pitchLowerThreshold = baselinePitch - 10.0f;
+    const float pitchUpperThreshold = baselinePitch + 10.0f;
+    const float rollLowerThreshold = baselineRoll - 10.0f;
+    const float rollUpperThreshold = baselineRoll + 10.0f;
+
+    bool pitchGood = (currentPitch >= pitchLowerThreshold) && (currentPitch <= pitchUpperThreshold);
+    bool rollGood = (currentRoll >= rollLowerThreshold) && (currentRoll <= rollUpperThreshold);
+    return pitchGood && rollGood;
 }
 
 
