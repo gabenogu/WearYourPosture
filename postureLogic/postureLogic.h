@@ -7,8 +7,18 @@ struct AccelData {
     float z;
 };
 
+struct PostureState {
+    AccelData accel;
+    float pitch;
+    float roll;
+    bool pitchGood;
+    bool rollGood;
+    bool postureGood;
+};
+
 float calculatePitch(const AccelData& accel);
 float calculateRoll(const AccelData& accel);
-bool isPostureGood(float tilt, float defaultDeg);
+bool isAngleGood(float angle, float defaultAngle);
+PostureState evaluatePosture(const AccelData& accel, float defaultPitch, float defaultRoll);
 
 #endif

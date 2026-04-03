@@ -1,32 +1,35 @@
 #include "postureLogic.h"
 #include <cmath>
 
-// How to do tests with ESP-IDF on VSCode
-// lets you compare values at compile time and test if 
-// system / functions are working as intended
+static const float THRESHOLD = 10.0f;
+static const float PI = 3.14159265f;
+
 float calculatePitch(const AccelData& accel) {
-    return (atan2(accel.x, sqrt(accel.y * accel.y  + accel.z * accel.z)) * 180) / M_PI;
-    
+    return (atan2(accel.x, sqrt(accel.y * accel.y + accel.z * accel.z)) * 180.0f) / PI;
 }
 
-float calculateRoll(const AccelData& accel){
-    return (atan2(accel.y, accel.z) * 180) / M_PI;
+float calculateRoll(const AccelData& accel) {
+    return (atan2(accel.y, accel.z) * 180.0f) / PI;
 }
 
-//with calibration tilt in mind, take current tilt deg, set both to abs
-//check if current tilt is within acceptable threshold
-bool isPostureGood(float tilt, float defaultDeg){
-    const float lowerThreshold = defaultDeg - 10.0;
-    const float upperThreshold = defaultDeg + 10.0;
-    if (tilt > upperThreshold || tilt < lowerThreshold){
-        return false;}
-    else {
-        return true;
-    }
+bool isAngleGood(float angle, float defaultAngle) {
+    const float lowerThreshold = defaultAngle - THRESHOLD;
+    const float upperThreshold = defaultAngle + THRESHOLD;
+
+    return (angle >= lowerThreshold && angle <= upperThreshold);
 }
 
+PostureState evaluatePosture(const AccelData& accel, float defaultPitch, float defaultRoll) {
+    PostureState state;
 
+    state.accel = accel;
+    state.pitch = calculatePitch(accel);
+    state.roll = calculateRoll(accel);
 
+    state.pitchGood = isAngleGood(state.pitch, defaultPitch);
+    state.rollGood = isAngleGood(state.roll, defaultRoll);
 
+    state.postureGood = state.pitchGood && state.rollGood;
 
-
+    return state;
+}
