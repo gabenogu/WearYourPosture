@@ -76,3 +76,23 @@ void MPU6050::update_orientation(SensorData *data, float dt){
     pitch = ALPHA * (pitch + data->gyro.x * dt) + (1.0f - ALPHA) * acc_pitch;
     roll  = ALPHA * (roll  + data->gyro.y * dt) + (1.0f - ALPHA) * acc_roll;
 }
+
+// Gyro calibration function
+void MPU6050::calibrate_gyro(i2c_master_dev_handle_t i2c_dev){
+    double sum_x = 0.0, sum_y = 0.0, sum_z = 0.0;
+
+    printf("Starting gyro calibration... Keep the device still.\n");
+
+    for (int i = 0; i < CALIBRATION_SAMPLES; i++){
+        read(i2c_dev);
+        sum_x += data.gyro.x;
+        sum_y += data.gyro.y;
+        sum_z += data.gyro.z;
+        vTaskDelay(10 / portTICK_PERIOD_MS); // Delay between samples
+    }
+    gyro_bias_x = sum_x / CALIBRATION_SAMPLES;
+    gyro_bias_y = sum_y / CALIBRATION_SAMPLES;
+    gyro_bias_z = sum_z / CALIBRATION_SAMPLES;
+
+    printf("Gyro Calibration Complete: Bias X=%.2f, Y=%.2f, Z=%.2f\n", gyro_bias_x, gyro_bias_y, gyro_bias_z);
+}
