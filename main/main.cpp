@@ -14,20 +14,22 @@ extern "C" void app_main(void){
     SensorData data{};
     float baselinePitch = 0.0f;
     float baselineRoll = 0.0f;
-    const int calibrationSamples = 200;
+    constexpr int kCalibrationSamples = 200;
+    constexpr int kCalibrationDelayMs = 20;
+    constexpr int kSampleIntervalMs = 1000;
 
-    for (int i = 0; i < calibrationSamples; ++i) {
+    for (int i = 0; i < kCalibrationSamples; ++i) {
         sensor.read(&data);
         baselinePitch += calculatePitch(data.accel);
         baselineRoll += calculateRoll(data.accel);
         
-        vTaskDelay(20 / portTICK_PERIOD_MS); // Delay for 20 ms between samples
+        vTaskDelay(kCalibrationDelayMs / portTICK_PERIOD_MS); // Delay for 20 ms between samples
 
        
     }
 
-    baselinePitch /= calibrationSamples;
-    baselineRoll /= calibrationSamples;
+    baselinePitch /= kCalibrationSamples;
+    baselineRoll /= kCalibrationSamples;
 
     while (true) {
         sensor.read(&data);
@@ -40,16 +42,35 @@ extern "C" void app_main(void){
         
         bool postureGood = isPostureGood(currentPitch, baselinePitch,currentRoll, baselineRoll);
 
-        printf("Current Pitch: %f, Baseline Pitch: %f, Pitch Error: %f, Current Roll: %f, Baseline Roll: %f, Roll Error: %f, Posture Good: %s\n", 
-            currentPitch, 
-            baselinePitch, 
+        printf(
+            "WYP_TELEMETRY {\"deviceName\":\"%s\",\"sampleIntervalMs\":%d,\"calibrationSamples\":%d,"
+            "\"thresholdDegrees\":%.1f,"
+            "\"accel\":{\"x\":%.4f,\"y\":%.4f,\"z\":%.4f},"
+            "\"gyro\":{\"x\":%.4f,\"y\":%.4f,\"z\":%.4f},"
+            "\"temp\":%.4f,"
+            "\"currentPitch\":%.4f,\"baselinePitch\":%.4f,\"pitchError\":%.4f,"
+            "\"currentRoll\":%.4f,\"baselineRoll\":%.4f,\"rollError\":%.4f,"
+            "\"postureGood\":%s}\n",
+            WYP_DEVICE_NAME,
+            kSampleIntervalMs,
+            kCalibrationSamples,
+            kPostureThresholdDegrees,
+            data.accel.x,
+            data.accel.y,
+            data.accel.z,
+            data.gyro.x,
+            data.gyro.y,
+            data.gyro.z,
+            data.temp,
+            currentPitch,
+            baselinePitch,
             pitchError,
             currentRoll,
             baselineRoll,
             rollError,
-            postureGood ? "Yes" : "No");
+            postureGood ? "true" : "false");
         
-        vTaskDelay(1000 / portTICK_PERIOD_MS); // Delay for 1 second
+        vTaskDelay(kSampleIntervalMs / portTICK_PERIOD_MS); // Delay for 1 second
     }
 
 
