@@ -1,10 +1,13 @@
 #include "mpu_6050.h"
 #include <math.h>
+#include "esp_log.h"
 
 #define ACCEL_SCALE 16384.0f 
 #define GYRO_SCALE 131.0f
 #define CONVERT_TEMP 340.0f + 36.53f
 #define ALPHA 0.98f
+
+static const char *TAG = "MPU6050";
 
 MPU6050::MPU6050(uint8_t address): slave_addr(address){
     // Initialize the sensor (e.g., wake it up)
@@ -56,6 +59,9 @@ void MPU6050::read(i2c_master_dev_handle_t i2c_dev) {
     data.gyro.x = combine(buffer[8], buffer[9]) / (GYRO_SCALE);
     data.gyro.y = combine(buffer[10], buffer[11]) / (GYRO_SCALE);
     data.gyro.z = combine(buffer[12], buffer[13]) / (GYRO_SCALE);
+
+    remap_axes(&data); // Remap axes if needed
+
     printf("Accel: X=%.2f, Y=%.2f, Z=%.2f\n", data.accel.x, data.accel.y, data.accel.z);
     printf("Gyro: X=%.2f, Y=%.2f, Z=%.2f\n", data.gyro.x, data.gyro.y, data.gyro.z);
     printf("Pitch: %.2f, Roll: %.2f\n", pitch, roll);
@@ -95,4 +101,59 @@ void MPU6050::calibrate_gyro(i2c_master_dev_handle_t i2c_dev){
     gyro_bias_z = sum_z / CALIBRATION_SAMPLES;
 
     printf("Gyro Calibration Complete: Bias X=%.2f, Y=%.2f, Z=%.2f\n", gyro_bias_x, gyro_bias_y, gyro_bias_z);
+}
+
+void MPU6050::remap_axes(SensorData *data){
+    float raw_x = data->accel.x;
+    float raw_y = data->accel.y;
+    float raw_z = data->accel.z;
+
+    float raw_gx = data->gyro.x;
+    float raw_gy = data->gyro.y;
+    float raw_gz = data->gyro.z;
+
+    data->accel.x = raw_x; // New X is old Y
+    data->accel.y = raw_z; // New Y is old X
+    data->accel.z = raw_y; // Z remains the same
+
+    data->gyro.x = raw_gx; // New X is old Y
+    data->gyro.y = raw_gz; // New Y is old X
+    data->gyro.z = raw_gy; // Z remains the same
+}
+
+
+void MPU6050::calibrate_reference(i2c_master_dev_handle_t i2c_dev,float dt) {
+    double sum_pitch = 0.0, sum_roll = 0.0;
+
+    ESP_LOGI(TAG, "Reference Calibration, Stand Straight");
+
+    for (int i = 0; i < REFRENCE_SAMPLES; i++){
+        read(i2c_dev);
+        update_orientation(&data, dt);
+
+        sum_pitch += pitch; 
+        sum_roll  += roll;
+
+        vTaskDelay(10 / portTICK_PERIOD_MS); // Delay between samples
+    }
+
+    reference_pitch = (float)(sum_pitch / REFRENCE_SAMPLES);
+    reference_roll  = (float)(sum_roll / REFRENCE_SAMPLES);
+    reference_set = true;
+
+    ESP_LOGI(TAG, "Reference calibration complete.");
+    ESP_LOGI(TAG, "Reference — Pitch: %.2f° | Roll: %.2f°", reference_pitch, reference_roll);
+
+}
+
+void MPU6050::get_posture_deviation(float &pitch_deviation, float &roll_deviaiton){
+    if(!reference_set){
+        ESP_LOGW(TAG, "Refrence not set. Call calibrate_reference() first.");
+        pitch_deviation = 0.0f;
+        roll_deviaiton = 0.0f;
+        return;
+    }
+
+    pitch_deviation = pitch - reference_pitch;
+    roll_deviaiton = roll - reference_roll;
 }

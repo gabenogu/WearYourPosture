@@ -27,7 +27,9 @@ constexpr uint8_t ACCEL_RATE_VALUE = 0x00;
 #define DATA_START_REG 0x3B
 #define ONE_TIME_DELAY (1000 / portTICK_PERIOD_MS)
 
-#define CALIBRATION_SAMPLES 200
+#define CALIBRATION_SAMPLES 500
+
+#define REFRENCE_SAMPLES 200
 
 struct AccelData {
 
@@ -68,12 +70,20 @@ class MPU6050 {
         float gyro_bias_y = 0.0f;
         float gyro_bias_z = 0.0f;
 
+        float reference_pitch = 0.0f;
+        float reference_roll = 0.0f;
+        bool reference_set = false;
+
     public:
         MPU6050() = default;
         explicit MPU6050(uint8_t address);
         void init_accel(i2c_master_dev_handle_t i2c_dev);
 
         void calibrate_gyro(i2c_master_dev_handle_t i2c_dev); // Function to claibrate gyroscope
+
+        void remap_axes(SensorData *data); // Function to remap axes if needed
+        void calibrate_reference(i2c_master_dev_handle_t i2c_dev, float dt); // Function to calibrate reference angles
+        void get_posture_deviation(float &pitch_deviation, float &roll_deviation); // Function to get posture deviation from reference angles
 
         //complementary filter function
         void compute_acc_angles(SensorData *data, float &acc_pitch, float &acc_roll);

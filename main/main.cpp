@@ -9,5 +9,7 @@ extern "C" void app_main(void){
     mp.init();
     xTaskCreate(mp.multiplexer_task_thread,"multiplexer task", 4096,&mp,configMAX_PRIORITIES-1,NULL);
 
-    wifi_driver_init("Iphone 12", "rey2004a");
+    //wifi_driver_init("Iphone 12", "rey2004a");
+
+    
 }
