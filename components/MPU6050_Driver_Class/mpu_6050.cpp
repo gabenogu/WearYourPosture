@@ -1,9 +1,10 @@
 #include "mpu_6050.h"
 #include <math.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 #define ACCEL_SCALE 16384.0f 
 #define GYRO_SCALE 131.0f
-#define ONE_TIME_DELAY (1000 / portTICK_PERIOD_MS)
 #define CONVERT_TEMP 340.0f + 36.53f
 
 #define ALPHA 0.98f
@@ -29,9 +30,10 @@ MPU6050::MPU6050(i2c_port_t port, uint8_t address){
     i2c_driver_install(i2c_port, conf.mode, 0, 0,0);
 
     uint8_t wake_cmd[2] = {WAKEUP_REG, 0x00};
-    i2c_master_write_to_device(i2c_port, slave_addr, wake_cmd, sizeof(wake_cmd), ONE_TIME_DELAY); 
-    const uint8_t config_register[2] = {0x1C,0x00};
-    i2c_master_write_to_device(i2c_port, slave_addr, config_register, sizeof(config_register), ONE_TIME_DELAY);
+    i2c_master_write_to_device(i2c_port, slave_addr, wake_cmd, 2, pdMS_TO_TICKS(100));
+
+    uint8_t config_register[2] = {0x1C, 0x00};
+    i2c_master_write_to_device(i2c_port, slave_addr, config_register, 2, pdMS_TO_TICKS(100));
 }
 
 inline int16_t combine(uint8_t high, uint8_t low) {
@@ -43,7 +45,7 @@ void MPU6050:: read(SensorData *data) {
     // Read 14 bytes of data starting from the DATA_START_REG
     uint8_t buffer[14];
     uint8_t reg = DATA_START_REG;
-    i2c_master_write_read_device(i2c_port,slave_addr, &reg, 1, buffer, 14, ONE_TIME_DELAY);
+    i2c_master_write_read_device(i2c_port,slave_addr, &reg, 1, buffer, 14, pdMS_TO_TICKS(100));
     
     // Convert the raw data to signed integers
     data->accel.x = combine(buffer[0], buffer[1]) /(ACCEL_SCALE);
@@ -57,21 +59,50 @@ void MPU6050:: read(SensorData *data) {
     data->gyro.z = combine(buffer[12], buffer[13]) / (GYRO_SCALE);
 }
 
+void MPU6050::calibrate_gyro(int samples){
+    SensorData data;
+    float sum_x = 0, sum_y = 0;
+
+    for(int i = 0; i < samples; i++){
+        read(&data);
+
+        sum_x += data.gyro.x;
+        sum_y += data.gyro.y;
+
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+
+    gyro_bias_x = sum_x / samples;
+    gyro_bias_y = sum_y / samples;
+}
+
+
 //compute pitch and roll from accelerometer
 void MPU6050:: compute_acc_angles(SensorData *data, float &acc_pitch, float &acc_roll){
     acc_pitch = atan2(data->accel.y, sqrt(data->accel.x*data->accel.x + data->accel.z*data->accel.z)) * 180.0 / M_PI;
     acc_roll  = atan2(-data->accel.x, data->accel.z) * 180.0 / M_PI;
 }
-//complementar filter
+//complementar filter & error calculation 
 void MPU6050::update_orientation(SensorData *data, float dt){
+
+    float gyro_x = data->gyro.x - gyro_bias_x;
+    float gyro_y = data->gyro.y - gyro_bias_y;
+
     float acc_pitch, acc_roll;
     compute_acc_angles(data, acc_pitch, acc_roll);
 
-    // Integrate gyro (dead reckoning)
-    this->pitch = ALPHA * (this->pitch + data->gyro.x * dt) + (1.0f - ALPHA) * acc_pitch;
-    this->roll  = ALPHA * (this->roll  + data->gyro.y * dt) + (1.0f - ALPHA) * acc_roll;
-}
+    // complementary filter
+    pitch = ALPHA * (pitch + gyro_x * dt) + (1 - ALPHA) * acc_pitch;
+    roll  = ALPHA * (roll  + gyro_y * dt) + (1 - ALPHA) * acc_roll;
 
+    // error propagation (simple version)
+    float gyro_var = 0.05f * 0.05f;
+    float acc_var  = 0.5f * 0.5f;
+
+    pitch_var = ALPHA * ALPHA * (pitch_var + gyro_var * dt * dt) + (1 - ALPHA) * (1 - ALPHA) * acc_var;
+
+    roll_var  = ALPHA * ALPHA * (roll_var + gyro_var * dt * dt) + (1 - ALPHA) * (1 - ALPHA) * acc_var;
+}
 void print_data(MPU6050 &sensor) {
     SensorData data;
     sensor.read(&data);

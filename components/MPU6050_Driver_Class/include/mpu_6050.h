@@ -1,5 +1,6 @@
 #ifndef MPU_6050_H
 #define MPU_6050_H
+
 #include <stdint.h>
 #include "driver/i2c.h"
 
@@ -47,7 +48,8 @@ class MPU6050 {
         MPU6050(i2c_port_t port, uint8_t address);
         void read(SensorData *data); 
 
-        
+        // Calibration
+        void calibrate_gyro(int samples = 200);
 
         //complementary filter function
         void compute_acc_angles(SensorData *data, float &acc_pitch, float &acc_roll);
@@ -57,6 +59,14 @@ class MPU6050 {
         // Estimated angles (can also be class members if needed)
         float pitch = 0.0f;
         float roll  = 0.0f;
+
+        float gyro_bias_x = 0.0f;
+        float gyro_bias_y = 0.0f;   
+        
+        //for error calculation
+        float pitch_var = 0.0f;
+        float roll_var  = 0.0f;
+
         friend void print_data(MPU6050 &sensor);
 };
 
