@@ -1,5 +1,10 @@
 #ifndef MPU_6050_H
 #define MPU_6050_H
+<<<<<<< HEAD
+
+#include <stdint.h>
+#include "driver/i2c.h"
+=======
 #include <cstdint>
 #include "driver/i2c_master.h"
 #include <freertos/FreeRTOS.h>
@@ -24,6 +29,7 @@ constexpr uint8_t GYRO_RATE_VALUE = 0x00;
 // Accel config for +- 2g (sensitivity 16384.0 LSB/s)
 constexpr uint8_t ACCEL_RATE_REG = 0x1C;
 constexpr uint8_t ACCEL_RATE_VALUE = 0x00;
+>>>>>>> b7938ccebc6544422e5e5956b76e48242c419b95
 
 #define DATA_START_REG 0x3B
 #define ONE_TIME_DELAY (1000 / portTICK_PERIOD_MS)
@@ -67,10 +73,18 @@ class MPU6050 {
 
 
     public:
+<<<<<<< HEAD
+        MPU6050(i2c_port_t port, uint8_t address);
+        void read(SensorData *data); 
+
+        // Calibration
+        void calibrate_gyro(int samples = 200);
+=======
         MPU6050() = default;
         explicit MPU6050(uint8_t address);
         void init_accel(i2c_master_dev_handle_t i2c_dev);
         
+>>>>>>> b7938ccebc6544422e5e5956b76e48242c419b95
 
         //complementary filter function
         void compute_acc_angles(SensorData *data, float &acc_pitch, float &acc_roll);
@@ -80,6 +94,17 @@ class MPU6050 {
         // Estimated angles (can also be class members if needed)
         float pitch = 0.0f;
         float roll  = 0.0f;
+<<<<<<< HEAD
+
+        float gyro_bias_x = 0.0f;
+        float gyro_bias_y = 0.0f;   
+        
+        //for error calculation
+        float pitch_var = 0.0f;
+        float roll_var  = 0.0f;
+
+        friend void print_data(MPU6050 &sensor);
+=======
         void read(i2c_master_dev_handle_t i2c_dev); 
         SensorData getSnapshot(){
             return data;
