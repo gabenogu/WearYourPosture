@@ -1,17 +1,11 @@
 #include "mpu_6050.h"
 #include "Bluetooth_WYP.h"
 #include <iostream>
+#include "Multiplexer_Class.h"
+#include <freertos/task.h>
 
 extern "C" void app_main(void){
-
-    //Initialize Bluetooth on ESP32
-    ble_gap_init();
-
-    // Initialize the MPU6050 sensor
-    MPU6050 sensor(I2C_NUM_0, 0x68); // Use I2C port 0 and address 0x68
-
-    while (true) {
-        print_data(sensor);
-        vTaskDelay(1000 / portTICK_PERIOD_MS); // Delay for 1 second
-    }
+    static Multiplexer mp;
+    mp.init();
+    xTaskCreate(mp.multiplexer_task_thread,"multiplexer task", 4096,&mp,configMAX_PRIORITIES-1,NULL);
 }
