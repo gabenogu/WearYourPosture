@@ -23,7 +23,7 @@ export default function App() {
   const [telemetry, setTelemetry] = useState(() => createTelemetrySnapshot());
   const [history, setHistory] = useState(() => buildSeedHistory());
   const [rawMessage, setRawMessage] = useState(
-    'WYP_TELEMETRY {"deviceName":"POstureTracker","sampleIntervalMs":1000,"calibrationSamples":200,"thresholdDegrees":10,"accel":{"x":0.01,"y":0.12,"z":0.98},"gyro":{"x":0.2,"y":-0.1,"z":0.04},"temp":36.4,"currentPitch":2.6,"baselinePitch":1.8,"pitchError":0.8,"currentRoll":-1.2,"baselineRoll":-1.6,"rollError":0.4,"postureGood":true}',
+    'WYP_TELEMETRY {"deviceName":"PostureTracker","sampleIntervalMs":1000,"calibrationSamples":200,"thresholdDegrees":10,"accel":{"x":0.01,"y":0.12,"z":0.98},"gyro":{"x":0.2,"y":-0.1,"z":0.04},"temp":36.4,"currentPitch":2.6,"baselinePitch":1.8,"pitchError":0.8,"currentRoll":-1.2,"baselineRoll":-1.6,"rollError":0.4,"postureGood":true}',
   );
   const [connection, setConnection] = useState({
     state: 'demo',
@@ -61,7 +61,7 @@ export default function App() {
       state: nextTelemetry.source === 'serial' ? 'streaming' : 'demo',
       message:
         nextTelemetry.source === 'serial'
-          ? 'Reading structured telemetry from the ESP32 serial console.'
+          ? 'Streaming live posture data from the connected ESP32.'
           : 'Previewing the payload structure with a simulated live feed.',
       lastSeen: nextTelemetry.receivedAt,
       deviceName: nextTelemetry.deviceName,
@@ -73,6 +73,8 @@ export default function App() {
       return undefined;
     }
 
+    let isActive = true;
+
     setConnection({
       state: 'demo',
       message: 'Previewing the payload structure with a simulated live feed.',
@@ -81,16 +83,33 @@ export default function App() {
     });
 
     const intervalId = window.setInterval(() => {
+      if (!isActive) {
+        return;
+      }
+
       demoStepRef.current += 1;
       commitTelemetry(createDemoTelemetry(demoStepRef.current));
     }, DEFAULT_SAMPLE_INTERVAL_MS);
 
-    return () => window.clearInterval(intervalId);
+    return () => {
+      isActive = false;
+      window.clearInterval(intervalId);
+    };
   }, [mode, commitTelemetry]);
 
   useEffect(() => () => {
     void releaseSerialResources();
   }, []);
+
+  function activateSerialMode() {
+    setMode('serial');
+    setConnection({
+      state: 'idle',
+      message: 'Live serial mode is active. Connect the ESP32 to start streaming posture data.',
+      lastSeen: telemetryRef.current.receivedAt,
+      deviceName: telemetryRef.current.deviceName,
+    });
+  }
 
   async function handleModeChange(nextMode) {
     if (nextMode === mode) {
@@ -105,13 +124,7 @@ export default function App() {
       return;
     }
 
-    setMode('serial');
-    setConnection({
-      state: 'idle',
-      message: 'Use a Chromium browser, then connect to the ESP32 USB serial port.',
-      lastSeen: telemetryRef.current.receivedAt,
-      deviceName: telemetryRef.current.deviceName,
-    });
+    activateSerialMode();
   }
 
   async function connectSerial() {
@@ -248,7 +261,11 @@ export default function App() {
       <header className="hero-card">
         <div className="hero-copy">
           <span className="eyebrow">Wear Your Posture</span>
-          <h1>Signal-rich React frontend for everything the device measures.</h1>
+          <h1>
+            WearYourPosture
+            <br />
+            Live Dashboard
+          </h1>
           <p>
             The dashboard surfaces posture status, tilt baselines, pitch and roll error, raw
             accelerometer and gyroscope axes, temperature, calibration settings, and the latest
@@ -271,7 +288,7 @@ export default function App() {
               type="button"
               className={mode === 'serial' ? 'mode-button is-active' : 'mode-button'}
               onClick={() => {
-                void handleModeChange('serial');
+                activateSerialMode();
               }}
             >
               Live Serial
@@ -279,8 +296,8 @@ export default function App() {
           </div>
 
           <div className="hero-note">
-            BLE is already advertising in firmware, but live sensor streaming still needs GATT
-            characteristics. The serial view works with the current project immediately.
+            Raw data is sent through the serial connection so the dashboard can display live
+            telemetry from the device as it arrives.
           </div>
         </div>
       </header>
@@ -340,7 +357,7 @@ export default function App() {
                     type="button"
                     className="action-button"
                     onClick={() => {
-                      void handleModeChange('serial');
+                      activateSerialMode();
                     }}
                   >
                     Switch to Live Serial

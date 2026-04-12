@@ -1,4 +1,4 @@
-export const DEVICE_NAME = 'POstureTracker';
+export const DEVICE_NAME = 'PostureTracker';
 export const DEFAULT_THRESHOLD_DEGREES = 10;
 export const DEFAULT_SAMPLE_INTERVAL_MS = 1000;
 export const DEFAULT_CALIBRATION_SAMPLES = 200;

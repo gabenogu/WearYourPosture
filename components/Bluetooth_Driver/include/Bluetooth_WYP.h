@@ -6,7 +6,7 @@
 #include <stdint.h> // fixed size interger types
 #include "host/ble_hs.h" // BLE host stack header
 
-#define WYP_DEVICE_NAME "POstureTracker"
+#define WYP_DEVICE_NAME "PostureTracker"
 
 extern uint16_t ble_conn_handle; // Global variable to store the connection handle
 

@@ -88,6 +88,7 @@ textarea {
   height: 240px;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(231, 205, 161, 0.8) 0%, rgba(231, 205, 161, 0) 70%);
+  pointer-events: none;
 }
 
 .hero-copy h1,
@@ -121,6 +122,7 @@ textarea {
 .hero-actions {
   display: grid;
   align-content: space-between;
+  justify-items: end;
   gap: 20px;
 }
 
@@ -136,7 +138,7 @@ textarea {
   align-items: center;
   gap: 8px;
   font-family: var(--mono);
-  font-size: 0.76rem;
+  font-size: 1rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--teal);
@@ -145,6 +147,7 @@ textarea {
 .mode-switch {
   display: inline-flex;
   flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 10px;
 }
 
@@ -271,29 +274,31 @@ textarea {
 
 .meta-list {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 12px;
   margin: 0;
 }
 
 .meta-list div {
-  padding: 14px;
-  border-radius: 18px;
+  min-width: 0;
+  padding: 20px;
+  border-radius: 20px;
   background: rgba(243, 234, 223, 0.7);
 }
 
 .meta-list dt {
   font-family: var(--mono);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
   color: var(--muted);
 }
 
 .meta-list dd {
-  margin: 8px 0 0;
+  margin: 10px 0 0;
   font-size: 1rem;
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .action-row {
@@ -331,7 +336,6 @@ textarea {
 
 .tilt-card {
   display: grid;
-  align-content: space-between;
   gap: 14px;
   padding: 18px;
   background:
@@ -582,6 +586,14 @@ textarea {
 
   .panel-head {
     flex-direction: column;
+  }
+
+  .hero-actions {
+    justify-items: start;
+  }
+
+  .mode-switch {
+    justify-content: flex-start;
   }
 }
 
