@@ -3,6 +3,7 @@
 #include <cstdint>
 #include "driver/i2c_master.h"
 #include <freertos/FreeRTOS.h>
+#include <iostream>
 
 // Wakeup device to use PLL clock
 constexpr uint8_t WAKEUP_REG = 0x6B;
@@ -26,6 +27,7 @@ constexpr uint8_t ACCEL_RATE_VALUE = 0x00;
 
 #define DATA_START_REG 0x3B
 #define ONE_TIME_DELAY (1000 / portTICK_PERIOD_MS)
+
 
 struct AccelData {
 
@@ -74,10 +76,12 @@ class MPU6050 {
         void compute_acc_angles(SensorData *data, float &acc_pitch, float &acc_roll);
         void update_orientation(SensorData *data, float dt);
         void print_data();
-
+        void calculate_baselines();
         // Estimated angles (can also be class members if needed)
         float pitch = 0.0f;
         float roll  = 0.0f;
         void read(i2c_master_dev_handle_t i2c_dev); 
-};
-#endif
+        SensorData getSnapshot(){
+            return data;
+        }
+

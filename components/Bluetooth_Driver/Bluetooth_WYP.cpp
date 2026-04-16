@@ -112,11 +112,10 @@ void ble_gap_init(void){
     ble_hs_cfg.reset_cb = on_reset; // Set the reset callback to be called when the BLE stack is reset
 
     ble_svc_gap_init(); // Initialize the GAP service
-    ble_svc_gap_device_name_set("POstureTracker"); // Set the device name for the GAP service
+    ble_svc_gap_device_name_set(WYP_DEVICE_NAME); // Set the device name for the GAP service
 
     nimble_port_freertos_init(ble_host_task); // Initialize the NimBLE FreeRTOS task to run the BLE host stack
 
     ESP_LOGI(TAG, "BLE GAP initialized successfully"); // Log that BLE GAP has been initialized successfully
 
 }
-

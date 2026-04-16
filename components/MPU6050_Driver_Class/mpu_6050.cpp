@@ -6,6 +6,8 @@
 #define CONVERT_TEMP 340.0f + 36.53f
 #define ALPHA 0.98f
 
+
+
 MPU6050::MPU6050(uint8_t address): slave_addr(address){
     // Initialize the sensor (e.g., wake it up)
     
@@ -56,14 +58,11 @@ void MPU6050::read(i2c_master_dev_handle_t i2c_dev) {
     data.gyro.x = combine(buffer[8], buffer[9]) / (GYRO_SCALE);
     data.gyro.y = combine(buffer[10], buffer[11]) / (GYRO_SCALE);
     data.gyro.z = combine(buffer[12], buffer[13]) / (GYRO_SCALE);
-    printf("Accel: X=%.2f, Y=%.2f, Z=%.2f\n", data.accel.x, data.accel.y, data.accel.z);
-    printf("Gyro: X=%.2f, Y=%.2f, Z=%.2f\n", data.gyro.x, data.gyro.y, data.gyro.z);
-    printf("Pitch: %.2f, Roll: %.2f\n", pitch, roll);
-    printf("Temp: %.2f\n", data.temp);
+    
 }
 
 //compute pitch and roll from accelerometer
-void MPU6050:: compute_acc_angles(SensorData *data, float &acc_pitch, float &acc_roll){
+void MPU6050::compute_acc_angles(SensorData *data, float &acc_pitch, float &acc_roll){
     acc_pitch = atan2(data->accel.y, sqrt(data->accel.x*data->accel.x + data->accel.z*data->accel.z)) * 180.0 / M_PI;
     acc_roll  = atan2(-data->accel.x, data->accel.z) * 180.0 / M_PI;
 }
@@ -76,3 +75,5 @@ void MPU6050::update_orientation(SensorData *data, float dt){
     pitch = ALPHA * (pitch + data->gyro.x * dt) + (1.0f - ALPHA) * acc_pitch;
     roll  = ALPHA * (roll  + data->gyro.y * dt) + (1.0f - ALPHA) * acc_roll;
 }
+
+
