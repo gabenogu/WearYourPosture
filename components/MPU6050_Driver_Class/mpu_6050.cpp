@@ -53,7 +53,7 @@ void MPU6050::read(i2c_master_dev_handle_t i2c_dev) {
     data.accel.y = combine(buffer[2], buffer[3])/(ACCEL_SCALE);
     data.accel.z = combine(buffer[4], buffer[5]) /(ACCEL_SCALE);
 
-    data.temp = combine(buffer[6], buffer[7]) / (CONVERT_TEMP);
+    data.temp = (combine(buffer[6], buffer[7]) / 340.0f) + 35.53f;
 
     data.gyro.x = combine(buffer[8], buffer[9]) / (GYRO_SCALE);
     data.gyro.y = combine(buffer[10], buffer[11]) / (GYRO_SCALE);
@@ -61,19 +61,21 @@ void MPU6050::read(i2c_master_dev_handle_t i2c_dev) {
     
 }
 
-//compute pitch and roll from accelerometer
-void MPU6050::compute_acc_angles(SensorData *data, float &acc_pitch, float &acc_roll){
-    acc_pitch = atan2(data->accel.y, sqrt(data->accel.x*data->accel.x + data->accel.z*data->accel.z)) * 180.0 / M_PI;
-    acc_roll  = atan2(-data->accel.x, data->accel.z) * 180.0 / M_PI;
-}
-//complementar filter
-void MPU6050::update_orientation(SensorData *data, float dt){
-    float acc_pitch, acc_roll;
-    compute_acc_angles(data, acc_pitch, acc_roll);
 
-    // Integrate gyro (dead reckoning)
-    pitch = ALPHA * (pitch + data->gyro.x * dt) + (1.0f - ALPHA) * acc_pitch;
-    roll  = ALPHA * (roll  + data->gyro.y * dt) + (1.0f - ALPHA) * acc_roll;
-}
+
+//compute pitch and roll from accelerometer
+// void MPU6050::compute_acc_angles(SensorData *data, float &acc_pitch, float &acc_roll){
+//     acc_pitch = atan2(data->accel.y, sqrt(data->accel.x*data->accel.x + data->accel.z*data->accel.z)) * 180.0 / M_PI;
+//     acc_roll  = atan2(-data->accel.x, data->accel.z) * 180.0 / M_PI;
+// }
+//complementar filter
+// void MPU6050::update_orientation(SensorData *data, float dt){
+//     float acc_pitch, acc_roll;
+//     compute_acc_angles(data, acc_pitch, acc_roll);
+
+//     // Integrate gyro (dead reckoning)
+//     pitch = ALPHA * (pitch + data->gyro.x * dt) + (1.0f - ALPHA) * acc_pitch;
+//     roll  = ALPHA * (roll  + data->gyro.y * dt) + (1.0f - ALPHA) * acc_roll;
+// }
 
 

@@ -12,7 +12,7 @@ SensorData topRight;
 SensorData middleBack;
 
 #define WYP_DEVICE_NAME "PostureTracker"
-constexpr float kPostureThresholdDegrees = 30.0f;
+constexpr float kPostureThresholdDegrees = 15.0f;
 constexpr int kCalibrationSamples = 200;
 constexpr int kCalibrationDelayMs = 20;
 constexpr int kSampleIntervalMs = 1000;
@@ -23,9 +23,9 @@ constexpr int kSampleIntervalMs = 1000;
 /*
 C-style functions uptop for posture data
 */
-constexpr float ACCEL_X_UPRIGHT = -0.70f;
-constexpr float ACCEL_Y_UPRIGHT = 0.15f;
-constexpr float ACCEL_Z_UPRIGHT = 0.65;
+constexpr float ACCEL_X_UPRIGHT = .60f;
+constexpr float ACCEL_Y_UPRIGHT = .60f;
+constexpr float ACCEL_Z_UPRIGHT = 0.40f;
 // How to do tests with ESP-IDF on VSCode
 // lets you compare values at compile time and test if 
 // system / functions are working as intended
@@ -156,7 +156,7 @@ void Multiplexer::multiplexer_task_thread(void * args){
         arg->calculate_accel_combined(combined_accel_x, combined_accel_y, combined_accel_z);
         arg->calculate_gyro_combined(combined_gyro_x, combined_gyro_y, combined_gyro_z);
         float currentPitch = calculatePitch({combined_accel_x, combined_accel_y, combined_accel_z});
-        float currentRoll = calculateRoll({combined_gyro_x, combined_gyro_y, combined_gyro_z});
+        float currentRoll = calculateRoll({combined_accel_x, combined_accel_y, combined_accel_z});
         float pitchError = currentPitch - baselinePitch;
         float rollError = currentRoll - baselineRoll;
         bool postureGood = isPostureGood(currentPitch, baselinePitch,currentRoll, baselineRoll);

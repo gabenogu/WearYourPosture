@@ -73,15 +73,13 @@ class MPU6050 {
         
 
         //complementary filter function
-        void compute_acc_angles(SensorData *data, float &acc_pitch, float &acc_roll);
-        void update_orientation(SensorData *data, float dt);
-        void print_data();
-        void calculate_baselines();
-        // Estimated angles (can also be class members if needed)
-        float pitch = 0.0f;
-        float roll  = 0.0f;
+        // void compute_acc_angles(SensorData *data, float &acc_pitch, float &acc_roll);
+        // void update_orientation(SensorData *data, float dt);
+        
         void read(i2c_master_dev_handle_t i2c_dev); 
         SensorData getSnapshot(){
             return data;
         }
+};
 
+#endif // MPU_6050_H

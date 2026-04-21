@@ -23,7 +23,7 @@ export default function App() {
   const [telemetry, setTelemetry] = useState(() => createTelemetrySnapshot());
   const [history, setHistory] = useState(() => buildSeedHistory());
   const [rawMessage, setRawMessage] = useState(
-    'WYP_TELEMETRY {"deviceName":"POstureTracker","sampleIntervalMs":1000,"calibrationSamples":200,"thresholdDegrees":10,"accel":{"x":0.01,"y":0.12,"z":0.98},"gyro":{"x":0.2,"y":-0.1,"z":0.04},"temp":36.4,"currentPitch":2.6,"baselinePitch":1.8,"pitchError":0.8,"currentRoll":-1.2,"baselineRoll":-1.6,"rollError":0.4,"postureGood":true}',
+    'WYP_TELEMETRY {"deviceName":"PostureTracker","sampleIntervalMs":1000,"calibrationSamples":200,"thresholdDegrees":10,"accel":{"x":0.01,"y":0.12,"z":0.98},"gyro":{"x":0.2,"y":-0.1,"z":0.04},"temp":36.4,"currentPitch":2.6,"baselinePitch":1.8,"pitchError":0.8,"currentRoll":-1.2,"baselineRoll":-1.6,"rollError":0.4,"postureGood":true}',
   );
   const [connection, setConnection] = useState({
     state: 'demo',
@@ -248,7 +248,7 @@ export default function App() {
       <header className="hero-card">
         <div className="hero-copy">
           <span className="eyebrow">Wear Your Posture</span>
-          <h1>Signal-rich React frontend for everything the device measures.</h1>
+          <h1>WearYourPosture Live Dashboard</h1>
           <p>
             The dashboard surfaces posture status, tilt baselines, pitch and roll error, raw
             accelerometer and gyroscope axes, temperature, calibration settings, and the latest
@@ -279,8 +279,7 @@ export default function App() {
           </div>
 
           <div className="hero-note">
-            BLE is already advertising in firmware, but live sensor streaming still needs GATT
-            characteristics. The serial view works with the current project immediately.
+            Raw data is being sent via Serial Port to WearYourPosture server. The serial view works by displaying live data straight from the users back!
           </div>
         </div>
       </header>
@@ -387,7 +386,6 @@ export default function App() {
             <div className="temperature-card">
               <span className="eyebrow">Board temperature</span>
               <strong>{telemetry.temp.toFixed(2)}&deg;C</strong>
-              <p>The same value the firmware reads from the MPU6050 packet.</p>
             </div>
           </div>
         </section>
@@ -436,8 +434,7 @@ export default function App() {
 
           <pre className="raw-packet">{rawMessage}</pre>
           <p className="support-copy">
-            The frontend parses the new `WYP_TELEMETRY` JSON packet and still falls back to the
-            older human-readable pitch and roll log line if needed.
+            This is the latest packet sent from the device itself!
           </p>
         </section>
       </main>
